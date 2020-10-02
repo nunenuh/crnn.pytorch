@@ -4,7 +4,7 @@ from typing import *
 import torch
 import torchvision.transforms.functional as VF
 import torchvision.transforms as VT
-import ocrnune.functional as NF
+from . import functional as NF
 
 import PIL
 from PIL import Image

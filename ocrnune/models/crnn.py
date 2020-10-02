@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from ocrnune.modules import attention, feature, prediction, sequence, transformation 
+from ..modules import attention, feature, prediction, sequence, transformation 
 
 
 class EncoderOCR(nn.Module):
