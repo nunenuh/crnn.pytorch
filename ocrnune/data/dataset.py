@@ -4,20 +4,18 @@ import re
 import six
 import math
 import lmdb
-
 from pathlib import Path
 from typing import *
 
 
-import torch
-# import torch.utils.functional as F
-from torch.utils.data.dataset import random_split
-
+import numpy as np
 from natsort import natsorted
 from PIL import Image
-import numpy as np
-from torch.utils.data import Dataset, ConcatDataset, Subset     
-from torch._utils import _accumulate
+
+
+import torch
+from torch.utils.data.dataset import random_split
+from torch.utils.data import Dataset, ConcatDataset
 import torchvision.transforms as transforms
 
 
@@ -333,97 +331,6 @@ class RawDataset(Dataset):
                 img = Image.new('L', (self.im_width, self.im_height))
 
         return (img, self.image_path_list[index])
-            
-
-class ResizeNormalize(object):
-
-    def __init__(self, size, interpolation=Image.BICUBIC):
-        self.size = size
-        self.interpolation = interpolation
-        self.to_tensor = transforms.ToTensor()
-
-    def __call__(self, img):
-        img = img.resize(self.size, self.interpolation)
-        img = self.to_tensor(img)
-        img.sub_(0.5).div_(0.5)
-        return img
-
-
-class NormalizePAD(object):
-
-    def __init__(self, max_size, pad_type='right'):
-        self.to_tensor = transforms.ToTensor()
-        self.max_size = max_size
-        self.max_width_half = math.floor(max_size[2] / 2)
-        self.pad_type = pad_type
-
-    def __call__(self, img):
-        img = self.to_tensor(img)
-        img.sub_(0.5).div_(0.5)
-        c, h, w = img.size()
-        pad_img = torch.FloatTensor(*self.max_size).fill_(0)
-        pad_img[:, :, :w] = img  # right pad
-        if self.max_size[2] != w:  # add border Pad
-            pad_img[:, :, w:] = img[:, :, w - 1].unsqueeze(2).expand(c, h, self.max_size[2] - w)
-
-        return pad_img
-    
-class ResizeWithRatio(object):
-    def __init__(self, im_size=(32,100)):
-        self.im_size = im_size
-        self.im_heigth , self.im_width = self.im_size
-    
-    def __call__(self, img):
-        w, h = img.size
-        ratio = w / float(h)
-        
-        if math.ceil(self.im_heigth * ratio) > self.im_width:
-            resized_w = self.im_width
-        else:
-            resized_w = math.ceil(self.im_heigth * ratio)
-            
-        resized_image = img.resize((resized_w, self.im_height), Image.BICUBIC)
-        return resized_image
-            
-
-
-class AlignCollate(object):
-    
-    def __init__(self, im_size = (32, 100), keep_ratio_with_pad=False):
-        self.im_size = im_size
-        self.im_heigth , self.im_width = self.im_size
-        self.keep_ratio_with_pad = keep_ratio_with_pad
-        
-    def __call__(self, batch):
-        batch = filter(lambda x: x is not None, batch)
-        images, labels = zip(*batch)
-        
-        if self.keep_ratio_with_pad:
-            resized_max_w = self.im_width
-            in_channels = 3
-            if not images[0].mode == 'RGB': in_channels = 1
-            transform = NormalizePAD(in_channels, self.im_height, resized_max_w)
-            
-            resized_images = []
-            for image in images:
-                w, h = image.size
-                ratio = w / float(h)
-                if math.ceil(self.img_height * ratio) > self.im_width:
-                    resized_w = self.im_width
-                else:
-                    resized_w = math.ceil(self.im_height * ratio)
-                
-                resized_image = image.resize((resized_w, self.im_height), Image.BICUBIC)
-                resized_images.append(transform(resized_image))
-                
-            image_tensors = torch.cat([t_img.unsqueeze(0) for t_img in resized_images], dim=0) 
-            
-        else:
-            transform = ResizeNormalize((self.im_width, self.im_heigth))
-            image_tensors = [transform(image) for image in images]
-            image_tensors = torch.cat([t_img.unsqueeze(0) for t_img in image_tensors], dim=0)
-
-        return image_tensors, labels
             
 
 
