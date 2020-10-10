@@ -3,10 +3,10 @@ import torch.nn as nn
 from ..modules import attention, feature, prediction, sequence, transformation 
 
 
-class EncoderOCR(nn.Module):
+class Encoder(nn.Module):
     def __init__(self, in_feat: int = 1, out_feat: int = 512, 
                  num_fiducial: int = 20, im_size: tuple = (32, 100)):
-        super(EncoderOCR, self).__init__()
+        super(Encoder, self).__init__()
         self.transformer = transformation.SpatialTransformerNetwork(num_fiducial=num_fiducial, 
                                                                     img_size=im_size, img_rectified_size=im_size, 
                                                                     img_channel_num=in_feat)
@@ -21,9 +21,9 @@ class EncoderOCR(nn.Module):
         return x
     
     
-class DecoderOCR(nn.Module):
+class Decoder(nn.Module):
     def __init__(self, input_size: int, num_class: int, hidden_size: int = 256):
-        super(DecoderOCR, self).__init__()
+        super(Decoder, self).__init__()
         self.sequence = nn.Sequential(
             sequence.BiLSTM(input_size, hidden_size, hidden_size),
             sequence.BiLSTM(hidden_size, hidden_size, hidden_size)
@@ -41,8 +41,8 @@ class OCR(nn.Module):
     def __init__(self, num_class, in_feat: int = 1, out_feat: int = 512, 
                  hidden_size: int = 256, nfid: int = 20, im_size: tuple = (32, 100)):
         super(OCR, self).__init__()
-        self.encoder = EncoderOCR(in_feat=in_feat, out_feat=out_feat, num_fiducial=nfid, im_size=im_size)
-        self.decoder = DecoderOCR(input_size=out_feat, num_class=num_class, hidden_size=hidden_size)
+        self.encoder = Encoder(in_feat=in_feat, out_feat=out_feat, num_fiducial=nfid, im_size=im_size)
+        self.decoder = Decoder(input_size=out_feat, num_class=num_class, hidden_size=hidden_size)
         
     def forward(self, x: torch.Tensor, text, is_train=True, batch_max_length=25):
         features = self.encoder(x)
