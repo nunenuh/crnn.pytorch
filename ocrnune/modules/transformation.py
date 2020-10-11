@@ -219,7 +219,10 @@ class GridGenerator(nn.Module):
         batch_size = batch_sampling_grid_prime.size(0)
         batch_inv_delta_fiducial_points = self.inverse_delta_fiducial_points.repeat(batch_size, 1, 1)
         batch_sampling_grid_hat = self.sampling_grid_hat.repeat(batch_size, 1, 1)
-        batch_fiducial_points_prime_with_zeros = torch.cat([batch_sampling_grid_prime, torch.zeros(batch_size, 3, 2).float().to(device)], dim=1)
+        
+        # zeroes = torch.zeros(batch_size, 3, 2).float().to(device)
+        zeroes = torch.zeros(batch_size, 3, 2).float()
+        batch_fiducial_points_prime_with_zeros = torch.cat([batch_sampling_grid_prime, zeroes], dim=1)
         batch_transformation = torch.bmm(batch_inv_delta_fiducial_points, batch_fiducial_points_prime_with_zeros)
         batch_sampling_grid_prime = torch.bmm(batch_sampling_grid_hat, batch_transformation)
         
