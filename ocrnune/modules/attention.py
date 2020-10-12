@@ -3,34 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
-class AttentionCell(nn.Module):
-    def __init__(self, input_size: int, hidden_size: int, num_embeddings: int):
-        super(AttentionCell, self).__init__()
-        self.input_size = input_size
-        self.hidden_size = hidden_size
-        self.num_embeddings = num_embeddings
-        
-        self.i2h = nn.Linear(in_features=input_size, out_features=hidden_size, bias=False)
-        self.h2h = nn.Linear(in_features=hidden_size, out_features=hidden_size)
-        self.score = nn.Linear(in_features=hidden_size, out_features=1, bias=False)
-        self.rnn = nn.LSTMCell(input_size=input_size + num_embeddings, hidden_size=hidden_size)
-        
-    def forward(self, prev_hidden, batch_hidden, char_onehots):
-        # [batch_size x num_encoder_step x num_channel] -> [batch_size x num_encoder_step x hidden_size]
-        batch_hidden_proj = self.i2h(batch_hidden)
-        prev_hidden_proj = self.h2h(prev_hidden[0]).unsqueeze(1)
-        e = self.score(torch.tanh(batch_hidden_proj + prev_hidden_proj)) # batch_size x num_encoder_step * 1
-        
-        alpha = F.softmax(e, dim=1)
-        context = torch.bmm(alpha.permute(0, 2, 1), batch_hidden).squeeze(1)  # batch_size x num_channel
-        concat_context = torch.cat([context, char_onehots], 1) # batch_size x (num_channel + num_embedding)
-        current_hidden = self.rnn(concat_context, prev_hidden)
-        return current_hidden, alpha
-    
-    
 class Attention(nn.Module):
     def __init__(self, input_size: int, hidden_size: int, num_classes: int):
+        super(Attention, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_classes = num_classes
@@ -87,3 +62,29 @@ class Attention(nn.Module):
                 targets = next_input
                 
         return probs
+    
+    
+class AttentionCell(nn.Module):
+    def __init__(self, input_size: int, hidden_size: int, num_embeddings: int):
+        super(AttentionCell, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.num_embeddings = num_embeddings
+        
+        self.i2h = nn.Linear(in_features=input_size, out_features=hidden_size, bias=False)
+        self.h2h = nn.Linear(in_features=hidden_size, out_features=hidden_size)
+        self.score = nn.Linear(in_features=hidden_size, out_features=1, bias=False)
+        self.rnn = nn.LSTMCell(input_size=input_size + num_embeddings, hidden_size=hidden_size)
+        
+    def forward(self, prev_hidden, batch_hidden, char_onehots):
+        # [batch_size x num_encoder_step x num_channel] -> [batch_size x num_encoder_step x hidden_size]
+        batch_hidden_proj = self.i2h(batch_hidden)
+        prev_hidden_proj = self.h2h(prev_hidden[0]).unsqueeze(1)
+        e = self.score(torch.tanh(batch_hidden_proj + prev_hidden_proj)) # batch_size x num_encoder_step * 1
+        
+        alpha = F.softmax(e, dim=1)
+        context = torch.bmm(alpha.permute(0, 2, 1), batch_hidden).squeeze(1)  # batch_size x num_channel
+        concat_context = torch.cat([context, char_onehots], 1) # batch_size x (num_channel + num_embedding)
+        current_hidden = self.rnn(concat_context, prev_hidden)
+        return current_hidden, alpha
+    
