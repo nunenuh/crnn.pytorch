@@ -3,9 +3,9 @@ import torch.nn as nn
 import torchvision.models.resnet as resnet
 
 
-class ResNetFeatureExtraction(nn.Module):
+class FeatureExtraction(nn.Module):
     def __init__(self, in_feat, out_feat, resnet_block = resnet.BasicBlock, layers=[3, 4, 6, 3], freeze_network=False):
-        super(ResNetFeatureExtraction, self).__init__()    
+        super(FeatureExtraction, self).__init__()    
         self.resnet_base = ResNetBase(resnet_block, layers, in_channels=in_feat, out_channels=out_feat)
         
         if freeze_network:
