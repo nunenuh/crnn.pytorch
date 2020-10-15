@@ -80,6 +80,7 @@ class AttentionCell(nn.Module):
         # [batch_size x num_encoder_step x num_channel] -> [batch_size x num_encoder_step x hidden_size]
         batch_hidden_proj = self.i2h(batch_hidden)
         prev_hidden_proj = self.h2h(prev_hidden[0]).unsqueeze(1)
+        
         e = self.score(torch.tanh(batch_hidden_proj + prev_hidden_proj)) # batch_size x num_encoder_step * 1
         
         alpha = F.softmax(e, dim=1)

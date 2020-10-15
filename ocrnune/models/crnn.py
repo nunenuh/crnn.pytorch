@@ -1,6 +1,10 @@
+import sys
+sys.path.append('/home/nunenuh/study/code/repo/crnn.torch')
+
 import torch
 import torch.nn as nn
-from ..modules import attention, feature, prediction, sequence, transformation 
+    
+from ocrnune.modules import attention, feature, prediction, sequence, transformation 
 
 
 class Encoder(nn.Module):
@@ -12,8 +16,6 @@ class Encoder(nn.Module):
                                                                     img_channel_num=in_feat)
         
         self.feature_extraction = feature.ResNetFeatureExtraction(in_feat=in_feat, out_feat=out_feat)
-        # self.pool = nn.AdaptiveAvgPool2d((None, 1))
-        
         
     def forward(self, x):
         x = self.transformer(x)
@@ -52,11 +54,14 @@ class OCR(nn.Module):
     
     
 if __name__ == "__main__":
-    # enc = EncoderOCR
-    # test_data = torch.rand(3,1,224,224)
+    # enc = Encoder()aqa 
+    test_data = torch.rand(3,1,224,224)
     # out = enc(test_data)
     # print(out)
+   
+    
     num_class = 96
     im_size = (32, 100)
     model = OCR(num_class = num_class, im_size=im_size)
+    
     
