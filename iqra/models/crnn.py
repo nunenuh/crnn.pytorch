@@ -39,10 +39,8 @@ class OCRNet(nn.Module):
     def __init__(self, num_class, in_feat: int = 1, out_feat: int = 512,
                  hidden_size: int = 256, nfid: int = 20, im_size: tuple = (32, 100)):
         super(OCRNet, self).__init__()
-        self.encoder = Encoder(
-            in_feat=in_feat, out_feat=out_feat, nf=nfid, im_size=im_size)
-        self.decoder = Decoder(input_size=out_feat,
-                               num_class=num_class, hidden_size=hidden_size)
+        self.encoder = Encoder(in_feat=in_feat, out_feat=out_feat, nf=nfid, im_size=im_size)
+        self.decoder = Decoder(input_size=out_feat, num_class=num_class, hidden_size=hidden_size)
 
     def forward(self, x: torch.Tensor, text, is_train=True, batch_max_length=25):
         features = self.encoder(x)

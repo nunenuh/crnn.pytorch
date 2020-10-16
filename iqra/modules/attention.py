@@ -31,7 +31,8 @@ class Attention(nn.Module):
         Returns:
             torch.Tensor : probability distribution at each step [batch_size x num_steps x num_classes]
         """
-        
+        used_device = batch_hidden.get_device()
+        print(f'used_device: {used_device}')
         batch_size = batch_hidden.size(0)
         num_steps = batch_max_length + 1  # +1 for [s] at end of sentence.
         
@@ -40,21 +41,22 @@ class Attention(nn.Module):
                   torch.FloatTensor(batch_size, self.hidden_size).fill_(0))
         
         
+        
         if is_train:
             for i in range(num_steps):
                 # one-hot vectors for a i-th char. in a batch
-                char_onehots = self._char_to_one_hot(text[:, i], one_hot_dim=self.num_classes)
+                char_onehots = self._char_to_one_hot(text[:, i], one_hot_dim=self.num_classes).to(used_device)
                 # hidden : decoder's hidden s_{t-1}, batch_hidden : encoder's hidden H, char_onehots : one-hot(y_{t-1})
                 hidden, alpha = self.attention_cell(hidden, batch_hidden, char_onehots)
                 output_hiddens[:, i, :] = hidden[0]
             probs = self.generator(output_hiddens)
             
         else:
-            targets = torch.LongTensor(batch_size).fill_(0)
-            probs = torch.FloatTensor(batch_size, num_steps, self.num_classes).fill_(0)
+            targets = torch.LongTensor(batch_size).fill_(0).to(used_device)
+            probs = torch.FloatTensor(batch_size, num_steps, self.num_classes).fill_(0).to(used_device)
             
             for i in range(num_steps):
-                char_onehots = self._char_to_one_hot(targets, one_hot_dim=self.num_classes)
+                char_onehots = self._char_to_one_hot(targets, one_hot_dim=self.num_classes).to(used_device)
                 hidden, alpha = self.attention_cell(hidden, batch_hidden, char_onehots)
                 probs_step = self.generator(hidden[0])
                 probs[:, i, :] = probs_step
@@ -85,6 +87,9 @@ class AttentionCell(nn.Module):
         
         alpha = F.softmax(e, dim=1)
         context = torch.bmm(alpha.permute(0, 2, 1), batch_hidden).squeeze(1)  # batch_size x num_channel
+        print(f'context.shape: {context.shape}' )
+        print(f'char_onehots.shape: {char_onehots.shape}' )
+        
         concat_context = torch.cat([context, char_onehots], 1) # batch_size x (num_channel + num_embedding)
         current_hidden = self.rnn(concat_context, prev_hidden)
         return current_hidden, alpha
