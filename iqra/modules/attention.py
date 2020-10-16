@@ -4,18 +4,20 @@ import torch.nn.functional as F
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class Attention(nn.Module):
-    def __init__(self, input_size: int, hidden_size: int, num_classes: int):
+    def __init__(self, input_size: int, hidden_size: int, num_classes: int, num_gpus=1):
         super(Attention, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_classes = num_classes
+        self.num_gpus=num_gpus
         
-        self.attention_cell = AttentionCell(input_size, hidden_size, num_classes)
+        self.attention_cell = AttentionCell(input_size, hidden_size, num_classes, num_gpus=num_gpus)
         self.generator = nn.Linear(in_features=hidden_size, out_features=num_classes)
         
     def _char_to_one_hot(self, input_char: torch.Tensor, one_hot_dim: int = 38):
         input_char = input_char.unsqueeze(1)
         batch_size = input_char.size(0)
+        batch_size = batch_size // 2
         one_hot = torch.FloatTensor(batch_size, one_hot_dim).zero_()
         return one_hot
     
@@ -36,27 +38,34 @@ class Attention(nn.Module):
         batch_size = batch_hidden.size(0)
         num_steps = batch_max_length + 1  # +1 for [s] at end of sentence.
         
-        output_hiddens = torch.FloatTensor(batch_size, num_steps, self.hidden_size).fill_(0).to(used_device)
+        output_hiddens = torch.FloatTensor(batch_size, num_steps, self.hidden_size).fill_(0)
         hidden = (torch.FloatTensor(batch_size, self.hidden_size).fill_(0),
-                  torch.FloatTensor(batch_size, self.hidden_size).fill_(0)).to(used_device)
+                  torch.FloatTensor(batch_size, self.hidden_size).fill_(0))
+
         
         
         
         if is_train:
             for i in range(num_steps):
                 # one-hot vectors for a i-th char. in a batch
-                char_onehots = self._char_to_one_hot(text[:, i], one_hot_dim=self.num_classes).to(used_device)
+                char_onehots = self._char_to_one_hot(text[:, i], one_hot_dim=self.num_classes)
                 # hidden : decoder's hidden s_{t-1}, batch_hidden : encoder's hidden H, char_onehots : one-hot(y_{t-1})
+                
+                char_onehots = char_onehots.to(used_device)
+                
                 hidden, alpha = self.attention_cell(hidden, batch_hidden, char_onehots)
                 output_hiddens[:, i, :] = hidden[0]
             probs = self.generator(output_hiddens)
             
         else:
-            targets = torch.LongTensor(batch_size).fill_(0).to(used_device)
-            probs = torch.FloatTensor(batch_size, num_steps, self.num_classes).fill_(0).to(used_device)
+            targets = torch.LongTensor(batch_size).fill_(0)
+            probs = torch.FloatTensor(batch_size, num_steps, self.num_classes).fill_(0)
             
             for i in range(num_steps):
-                char_onehots = self._char_to_one_hot(targets, one_hot_dim=self.num_classes).to(used_device)
+                char_onehots = self._char_to_one_hot(targets, one_hot_dim=self.num_classes)
+                
+                char_onehots = char_onehots.to(used_device)
+                
                 hidden, alpha = self.attention_cell(hidden, batch_hidden, char_onehots)
                 probs_step = self.generator(hidden[0])
                 probs[:, i, :] = probs_step
@@ -67,11 +76,12 @@ class Attention(nn.Module):
     
     
 class AttentionCell(nn.Module):
-    def __init__(self, input_size: int, hidden_size: int, num_embeddings: int):
+    def __init__(self, input_size: int, hidden_size: int, num_embeddings: int, num_gpus=1):
         super(AttentionCell, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_embeddings = num_embeddings
+        self.num_gpus=num_gpus
         
         self.i2h = nn.Linear(in_features=input_size, out_features=hidden_size, bias=False)
         self.h2h = nn.Linear(in_features=hidden_size, out_features=hidden_size)

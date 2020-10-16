@@ -4,10 +4,11 @@ import torchvision.models.resnet as resnet
 
 
 class FeatureExtraction(nn.Module):
-    def __init__(self, in_feat, out_feat, resnet_block = resnet.BasicBlock, layers=[3, 4, 6, 3], freeze_network=False):
+    def __init__(self, in_feat, out_feat, resnet_block = resnet.BasicBlock, layers=[3, 4, 6, 3], 
+                 freeze_network=False, num_gpus=1):
         super(FeatureExtraction, self).__init__()    
         self.resnet_base = ResNetBase(resnet_block, layers, in_channels=in_feat, out_channels=out_feat)
-        
+        self.num_gpus = num_gpus
         if freeze_network:
             self._freeze_network()
         

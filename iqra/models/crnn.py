@@ -6,12 +6,12 @@ from ..modules import Attention, FeatureExtraction, SpatialTransformerNetwork as
 
 class Encoder(nn.Module):
     def __init__(self, in_feat: int = 1, out_feat: int = 512,
-                 nf: int = 20, im_size: tuple = (32, 100)):
+                 nf: int = 20, im_size: tuple = (32, 100), num_gpus=1):
         super(Encoder, self).__init__()
         self.stn = STN(nf=nf, img_size=im_size,
-                               imrec_size=im_size, img_channel=in_feat)
+                               imrec_size=im_size, img_channel=in_feat, num_gpus=num_gpus)
 
-        self.feature = FeatureExtraction(in_feat=in_feat, out_feat=out_feat)
+        self.feature = FeatureExtraction(in_feat=in_feat, out_feat=out_feat, num_gpus=num_gpus)
 
     def forward(self, x):
         x = self.stn(x)
@@ -20,13 +20,13 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, input_size: int, num_class: int, hidden_size: int = 256):
+    def __init__(self, input_size: int, num_class: int, hidden_size: int = 256, num_gpus=1):
         super(Decoder, self).__init__()
         self.sequence = nn.Sequential(
             BiLSTM(input_size, hidden_size, hidden_size),
             BiLSTM(hidden_size, hidden_size, hidden_size)
         )
-        self.attention = Attention(hidden_size, hidden_size, num_class)
+        self.attention = Attention(hidden_size, hidden_size, num_class, num_gpus=num_gpus)
 
     def forward(self, feature: torch.Tensor, text, is_train=True, batch_max_length=25):
         contextual_feature = self.sequence(feature)
@@ -37,10 +37,10 @@ class Decoder(nn.Module):
 
 class OCRNet(nn.Module):
     def __init__(self, num_class, in_feat: int = 1, out_feat: int = 512,
-                 hidden_size: int = 256, nfid: int = 20, im_size: tuple = (32, 100)):
+                 hidden_size: int = 256, nfid: int = 20, im_size: tuple = (32, 100), num_gpus=1):
         super(OCRNet, self).__init__()
-        self.encoder = Encoder(in_feat=in_feat, out_feat=out_feat, nf=nfid, im_size=im_size)
-        self.decoder = Decoder(input_size=out_feat, num_class=num_class, hidden_size=hidden_size)
+        self.encoder = Encoder(in_feat=in_feat, out_feat=out_feat, nf=nfid, im_size=im_size, num_gpus=num_gpus)
+        self.decoder = Decoder(input_size=out_feat, num_class=num_class, hidden_size=hidden_size, num_gpus=num_gpus)
 
     def forward(self, x: torch.Tensor, text, is_train=True, batch_max_length=25):
         features = self.encoder(x)

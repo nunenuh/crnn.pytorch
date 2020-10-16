@@ -113,6 +113,9 @@ if __name__ == "__main__":
     OUT_CHANNEL = args.out_channel
     HIDDEN_SIZE = args.hidden_size
     
+    
+    NUM_GPUS = args.num_gpus
+    
     SAVED_CHECKPOINT_PATH = args.checkpoint_dir
     SAVED_LOGS_PATH = args.logs_dir
     
@@ -138,7 +141,7 @@ if __name__ == "__main__":
     
     
     model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, out_feat=OUT_CHANNEL,
-                   hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
+                   hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE, num_gpus=NUM_GPUS)
     
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = optim.Adam(model.parameters(), lr=LRATE, betas=(BETA1, BETA2))
@@ -160,7 +163,7 @@ if __name__ == "__main__":
     tb_logger = pl_loggers.TensorBoardLogger(SAVED_LOGS_PATH)
     trainer = pl.Trainer(gpus=2, logger=tb_logger, 
                          checkpoint_callback=checkpoint_callback, 
-                         distributed_backend='dp')
+                         distributed_backend='ddp')
     
     
     trainer.fit(task, trainloader, validloader)
