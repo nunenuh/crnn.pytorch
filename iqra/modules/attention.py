@@ -36,9 +36,9 @@ class Attention(nn.Module):
         batch_size = batch_hidden.size(0)
         num_steps = batch_max_length + 1  # +1 for [s] at end of sentence.
         
-        output_hiddens = torch.FloatTensor(batch_size, num_steps, self.hidden_size).fill_(0)
+        output_hiddens = torch.FloatTensor(batch_size, num_steps, self.hidden_size).fill_(0).to(used_device)
         hidden = (torch.FloatTensor(batch_size, self.hidden_size).fill_(0),
-                  torch.FloatTensor(batch_size, self.hidden_size).fill_(0))
+                  torch.FloatTensor(batch_size, self.hidden_size).fill_(0)).to(used_device)
         
         
         
