@@ -215,7 +215,7 @@ class GridGenerator(nn.Module):
         inv_delta_c = self.inv_delta_c.repeat(batch_size, 1, 1)
         p_hat = self.p_hat.repeat(batch_size, 1, 1)
         
-        zeroes = torch.zeros(batch_size, 3, 2).float()
+        zeroes = torch.zeros(batch_size, 3, 2).float().to(p_prime.get_device())
         c_prime_zeros = torch.cat([p_prime, zeroes], dim=1)
         transformation = torch.bmm(inv_delta_c, c_prime_zeros)
         p_prime = torch.bmm(p_hat, transformation)
