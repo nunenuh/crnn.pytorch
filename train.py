@@ -141,7 +141,7 @@ if __name__ == "__main__":
     
     
     model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, out_feat=OUT_CHANNEL,
-                   hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE, num_gpus=NUM_GPUS)
+                   hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
     
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = optim.Adam(model.parameters(), lr=LRATE, betas=(BETA1, BETA2))
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     if NUM_GPUS>1:
         trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
                              checkpoint_callback=checkpoint_callback, 
-                             distributed_backend='dp')
+                             distributed_backend='ddp')
     else:
         trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
                              checkpoint_callback=checkpoint_callback)

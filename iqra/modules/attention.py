@@ -4,14 +4,13 @@ import torch.nn.functional as F
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class Attention(nn.Module):
-    def __init__(self, input_size: int, hidden_size: int, num_classes: int, num_gpus=1):
+    def __init__(self, input_size: int, hidden_size: int, num_classes: int):
         super(Attention, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_classes = num_classes
-        self.num_gpus=num_gpus
         
-        self.attention_cell = AttentionCell(input_size, hidden_size, num_classes, num_gpus=num_gpus)
+        self.attention_cell = AttentionCell(input_size, hidden_size, num_classes)
         self.generator = nn.Linear(in_features=hidden_size, out_features=num_classes)
         
     def _char_to_one_hot(self, input_char: torch.Tensor, one_hot_dim: int = 38):
@@ -76,12 +75,11 @@ class Attention(nn.Module):
     
     
 class AttentionCell(nn.Module):
-    def __init__(self, input_size: int, hidden_size: int, num_embeddings: int, num_gpus=1):
+    def __init__(self, input_size: int, hidden_size: int, num_embeddings: int):
         super(AttentionCell, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_embeddings = num_embeddings
-        self.num_gpus=num_gpus
         
         self.i2h = nn.Linear(in_features=input_size, out_features=hidden_size, bias=False)
         self.h2h = nn.Linear(in_features=hidden_size, out_features=hidden_size)

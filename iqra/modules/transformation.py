@@ -229,7 +229,7 @@ class GridGenerator(nn.Module):
 class SpatialTransformerNetwork(nn.Module):
     """ Rectification Network of RARE, namely TPS based STN """
     
-    def __init__(self, nf, img_size, imrec_size, img_channel=1, num_gpus=1):
+    def __init__(self, nf, img_size, imrec_size, img_channel=1):
         super(SpatialTransformerNetwork, self).__init__()
         
         """ Based on RARE TPS
@@ -247,7 +247,6 @@ class SpatialTransformerNetwork(nn.Module):
         self.imrec_size = imrec_size # = (I_r_height, I_r_width)
         self.ir_height, self.ir_width = self.imrec_size
         self.img_channel_num = img_channel
-        self.num_gpus = num_gpus
         
         self.localization_network = LocalizationNetwork(self.nf, self.img_channel_num)
         self.grid_generator = GridGenerator(self.nf, self.imrec_size)
