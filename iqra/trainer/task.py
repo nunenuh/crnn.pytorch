@@ -10,7 +10,7 @@ class TaskOCR(pl.LightningModule):
     def __init__(self, model, optimizer, criterion, converter, grad_clip=5.0):
         super().__init__()
         self.model = model
-        self.model = self.model.to(self.device)
+        #self.model = self.model.to(self.device)
         
         self.optimizer = optimizer
         self.criterion = criterion
@@ -22,18 +22,18 @@ class TaskOCR(pl.LightningModule):
         return output
     
 
-    def backward(self, trainer, loss, optimizer, optimizer_idx):
+    def backward(self,loss, optimizer, optimizer_idx):
         loss.backward()
         nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_clip)
         
    
     def shared_step(self, batch, batch_idx):
         images, texts = batch
-        images = images.to(self.device)
-        
+        #images = images.to(self.device)
+
         texts_encoded, texts_length = self.converter.encode(texts)
-        texts_encoded = texts_encoded.to(self.device)
-        texts_length = texts_encoded.to(self.device)
+        #texts_encoded = texts_encoded.to(self.device)
+        #texts_length = texts_encoded.to(self.device)
         
         preds = self.model(images, texts_encoded[:, :-1])
         targets = texts_encoded[:, 1:]

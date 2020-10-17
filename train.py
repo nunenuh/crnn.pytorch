@@ -161,9 +161,14 @@ if __name__ == "__main__":
 
 
     tb_logger = pl_loggers.TensorBoardLogger(SAVED_LOGS_PATH)
-    trainer = pl.Trainer(gpus=2, logger=tb_logger, 
-                         checkpoint_callback=checkpoint_callback, 
-                         distributed_backend='ddp')
+    
+    if NUM_GPUS>1:
+        trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
+                             checkpoint_callback=checkpoint_callback, 
+                             distributed_backend='dp')
+    else:
+        trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
+                             checkpoint_callback=checkpoint_callback)
     
     
     trainer.fit(task, trainloader, validloader)
