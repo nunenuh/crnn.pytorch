@@ -23,10 +23,8 @@ from pytorch_lightning.metrics import Accuracy
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(
-        description='crnn.pytorch trainer cli apps')
-    parser.add_argument('--resume', default=None, type=str,
-                        help='Choose pth file to resume training')
+    parser = argparse.ArgumentParser(description='crnn.pytorch trainer cli apps')
+    parser.add_argument('--resume', default=None, type=str, help='Choose pth file to resume training')
 
     parser.add_argument('--max_epoch', required=True, default=None,
                         type=int, help='How many epoch to run training')
@@ -52,7 +50,8 @@ if __name__ == "__main__":
                         help='path to synthtext dataset')
     parser.add_argument('--image_size', default='100x32', type=str,
                         help='width and height of the image, default value is 100x32')
-    
+    parser.add_argument('--usage_ratio', default='0.5,0.5', type=str,
+			help='training data usage ratio default is (0.5, 0.5)')
     
     parser.add_argument('--batch_max_length', default=25, type=int,
                         help='choose batch size for data loader, default value is 32')
@@ -96,7 +95,8 @@ if __name__ == "__main__":
     NUM_WORKERS = args.num_workers
     SHUFFLE = args.shuffle
     IMG_SIZE = (h, w)
-        
+    USAGE_RATIO = list(map(float, args.usage_ratio.split(',')))
+    print(USAGE_RATIO)
     
     BATCH_MAX_LENGTH = args.batch_max_length
     SENSITIVE = args.sensitive
@@ -133,7 +133,8 @@ if __name__ == "__main__":
     
     trainloader = loader.train_loader(TRAINSET_PATH, batch_size=BATCH_SIZE, 
                                       shuffle=SHUFFLE, num_workers=NUM_WORKERS,
-                                      img_size=IMG_SIZE, is_sensitive=SENSITIVE)
+                                      img_size=IMG_SIZE, usage_ratio=USAGE_RATIO,
+				      is_sensitive=SENSITIVE)
     
     validloader = loader.valid_loader(VALIDSET_PATH, batch_size=BATCH_SIZE,
                                       shuffle=False, num_workers=NUM_WORKERS,
