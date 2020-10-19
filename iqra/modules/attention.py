@@ -34,6 +34,8 @@ class Attention(nn.Module):
             torch.Tensor : probability distribution at each step [batch_size x num_steps x num_classes]
         """
         used_device = batch_hidden.get_device()
+        if used_device == -1:
+            used_device = 'cpu'
 #         print(f'used_device: {used_device}')
         batch_size = batch_hidden.size(0)
         num_steps = batch_max_length + 1  # +1 for [s] at end of sentence.

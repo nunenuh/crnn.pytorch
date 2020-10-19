@@ -216,7 +216,9 @@ class GridGenerator(nn.Module):
         p_hat = self.p_hat.repeat(batch_size, 1, 1)
         
         zeroes = torch.zeros(batch_size, 3, 2).float()
-        zeroes = zeroes.to(p_prime.get_device())
+        device = p_prime.get_device()
+        if device == -1: device='cpu'
+        zeroes = zeroes.to(device)
         
         c_prime_zeros = torch.cat([p_prime, zeroes], dim=1)
         transformation = torch.bmm(inv_delta_c, c_prime_zeros)
@@ -226,11 +228,11 @@ class GridGenerator(nn.Module):
     
     
 
-class SpatialTransformerNetwork(nn.Module):
+class SpatialTransformer(nn.Module):
     """ Rectification Network of RARE, namely TPS based STN """
     
     def __init__(self, nf, img_size, imrec_size, img_channel=1):
-        super(SpatialTransformerNetwork, self).__init__()
+        super(SpatialTransformer, self).__init__()
         
         """ Based on RARE TPS
         input:

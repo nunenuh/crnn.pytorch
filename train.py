@@ -2,8 +2,9 @@ import os
 import sys
 sys.path.append(os.getcwd())
 
+from pathlib import Path
 
-
+import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch
@@ -96,7 +97,7 @@ if __name__ == "__main__":
     SHUFFLE = args.shuffle
     IMG_SIZE = (h, w)
     USAGE_RATIO = list(map(float, args.usage_ratio.split(',')))
-    print(USAGE_RATIO)
+    # print(USAGE_RATIO)
     
     BATCH_MAX_LENGTH = args.batch_max_length
     SENSITIVE = args.sensitive
@@ -116,8 +117,10 @@ if __name__ == "__main__":
     
     NUM_GPUS = args.num_gpus
     
+    
     SAVED_CHECKPOINT_PATH = args.checkpoint_dir
     SAVED_LOGS_PATH = args.logs_dir
+    LOG_FREQ = args.log_freq
     
     
     CHECKPOINT_RESUME = False
@@ -127,6 +130,23 @@ if __name__ == "__main__":
     WEIGHT_PATH = None
     
     
+    if args.resume:
+        fpath = Path(args.resume)
+        if fpath.is_file():
+            if fpath.suffix == 'ckpt':
+                # it means checkpoint of pytorch lightning 
+                CHECKPOINT_RESUME = True
+                CHECKPOINT_PATH = str(fpath)
+            elif fpath.suffix == 'pth':
+                # it means pytorch file original from model
+                WEIGHT_RESUME = True
+                WEIGHT_PATH = str(fpath)       
+            else:
+                raise NotImplemented(f'File with {fpath.suffix} is not implemented! ' 
+                                     f'make sure you load valid file with ckpt or pth extension!')
+        else:
+            raise IOError(f'Path that you specified is not valid pytorch or pytorch-lighning path!')
+    
     converter = AttnLabelConverter(CHARACTER)
     NUM_CLASS = len(converter.character)
     
@@ -134,22 +154,29 @@ if __name__ == "__main__":
     trainloader = loader.train_loader(TRAINSET_PATH, batch_size=BATCH_SIZE, 
                                       shuffle=SHUFFLE, num_workers=NUM_WORKERS,
                                       img_size=IMG_SIZE, usage_ratio=USAGE_RATIO,
-				      is_sensitive=SENSITIVE)
+				                      is_sensitive=SENSITIVE)
     
     validloader = loader.valid_loader(VALIDSET_PATH, batch_size=BATCH_SIZE,
                                       shuffle=False, num_workers=NUM_WORKERS,
                                       img_size=IMG_SIZE, is_sensitive=SENSITIVE)
     
     
-    model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, out_feat=OUT_CHANNEL,
+    
+    # Model Preparation
+    if WEIGHT_RESUME:
+        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, out_feat=OUT_CHANNEL,
+                       hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
+        weights = torch.load(WEIGHT_PATH, map_location=torch.device('cpu'))
+        model.load_state_dict(weights)
+    else:
+        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, out_feat=OUT_CHANNEL,
                    hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
+    
     
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = optim.Adam(model.parameters(), lr=LRATE, betas=(BETA1, BETA2))
     task = TaskOCR(model, optimizer, criterion, converter)
     
-    
-
     # DEFAULTS used by the Trainer
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         filepath=SAVED_CHECKPOINT_PATH,
@@ -164,12 +191,27 @@ if __name__ == "__main__":
     tb_logger = pl_loggers.TensorBoardLogger(SAVED_LOGS_PATH)
     
     if NUM_GPUS>1:
-        trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
-                             checkpoint_callback=checkpoint_callback, 
-                             distributed_backend='ddp')
+        if CHECKPOINT_RESUME:
+            trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
+                                 checkpoint_callback=checkpoint_callback, 
+                                 distributed_backend='ddp',
+                                 log_every_n_steps=LOG_FREQ,
+                                 resume_from_checkpoint=CHECKPOINT_PATH)
+        else:
+            trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
+                                 checkpoint_callback=checkpoint_callback, 
+                                 distributed_backend='ddp',
+                                 log_every_n_steps=LOG_FREQ)
     else:
-        trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
-                             checkpoint_callback=checkpoint_callback)
-    
+        if CHECKPOINT_RESUME:
+            trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
+                                    checkpoint_callback=checkpoint_callback,
+                                    log_every_n_steps=LOG_FREQ,
+                                    resume_from_checkpoint=CHECKPOINT_PATH)
+        else:
+            trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
+                                 checkpoint_callback=checkpoint_callback,
+                                 log_every_n_steps=LOG_FREQ)
+
     
     trainer.fit(task, trainloader, validloader)
