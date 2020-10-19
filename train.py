@@ -151,26 +151,25 @@ if __name__ == "__main__":
     NUM_CLASS = len(converter.character)
     
     
-    trainloader = loader.train_loader(TRAINSET_PATH, batch_size=BATCH_SIZE, 
+    trainloader, trainset = loader.train_loader(TRAINSET_PATH, batch_size=BATCH_SIZE, 
                                       shuffle=SHUFFLE, num_workers=NUM_WORKERS,
                                       img_size=IMG_SIZE, usage_ratio=USAGE_RATIO,
-				                      is_sensitive=SENSITIVE)
+				                      is_sensitive=SENSITIVE, character=CHARACTER)
     
-    validloader = loader.valid_loader(VALIDSET_PATH, batch_size=BATCH_SIZE,
+    validloader, validset = loader.valid_loader(VALIDSET_PATH, batch_size=BATCH_SIZE,
                                       shuffle=False, num_workers=NUM_WORKERS,
-                                      img_size=IMG_SIZE, is_sensitive=SENSITIVE)
-    
-    
+                                      img_size=IMG_SIZE, is_sensitive=SENSITIVE,
+                                      character=CHARACTER)    
     
     # Model Preparation
     if WEIGHT_RESUME:
-        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, out_feat=OUT_CHANNEL,
-                       hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
+        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE,
+			resnet_version=34, pretrained_feature=True, freeze_feature=True)
         weights = torch.load(WEIGHT_PATH, map_location=torch.device('cpu'))
         model.load_state_dict(weights)
     else:
-        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, out_feat=OUT_CHANNEL,
-                   hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
+        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE,
+			resnet_version=34, pretrained_feature=True, freeze_feature=True)
     
     
     criterion = nn.CrossEntropyLoss(ignore_index=0)
@@ -184,7 +183,7 @@ if __name__ == "__main__":
         verbose=True,
         monitor='val_loss',
         mode='min',
-        prefix='ocr_net_'
+        prefix='ocrnet'
     )
 
 
