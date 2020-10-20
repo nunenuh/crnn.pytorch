@@ -90,6 +90,13 @@ if __name__ == "__main__":
                         help='fill with zero to use cpu or fill with number 2 to use multigpu')
     parser.add_argument('--log_freq', default=10, type=int,
                         help='show log every value, default value is 10')
+    
+    
+    parser.add_argument('--max_steps', default=30000, type=int,
+                        help='max iteration step, default value is 30000')
+    
+    parser.add_argument('--valcheck_interval', default=2000, type=int,
+                        help='validation check interval in step, default value is 2000')
 
     parser.add_argument('--checkpoint_dir', default='saved_checkpoints/', type=str,
                         help='checkpoint directory for saving progress')
@@ -112,6 +119,9 @@ if __name__ == "__main__":
     
 
     MAX_EPOCH = args.max_epoch
+    MAX_STEPS = args.max_steps
+    
+    
     LRATE = args.lr
     BETA1 = args.beta1
     BETA2 = args.beta2
@@ -149,6 +159,7 @@ if __name__ == "__main__":
     SAVED_CHECKPOINT_PATH = args.checkpoint_dir
     SAVED_LOGS_PATH = args.logs_dir
     LOG_FREQ = args.log_freq
+    VALCHECK_INTERVAL = args.valcheck_interval
     
     
     CHECKPOINT_RESUME = False
@@ -218,6 +229,9 @@ if __name__ == "__main__":
         mode='min',
         prefix='ocrnet'
     )
+    
+
+    
 
 
     tb_logger = pl_loggers.TensorBoardLogger(SAVED_LOGS_PATH)
@@ -228,6 +242,7 @@ if __name__ == "__main__":
                                  checkpoint_callback=checkpoint_callback, 
                                  distributed_backend='ddp',
                                  log_every_n_steps=LOG_FREQ,
+                                 val_check_interval=VALCHECK_INTERVAL,
                                  resume_from_checkpoint=CHECKPOINT_PATH)
         else:
             trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 

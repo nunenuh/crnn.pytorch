@@ -10,6 +10,7 @@ from .metrics import TextAccuracy
 class TaskOCR(pl.LightningModule):
     def __init__(self, model, optimizer, criterion, converter, grad_clip=5.0, hparams={}):
         super().__init__()
+        self.save_hyperparameters()
         self.model = model
         #self.model = self.model.to(self.device)
         
