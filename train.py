@@ -233,7 +233,9 @@ if __name__ == "__main__":
     
     if NUM_GPUS>1:
         if CHECKPOINT_RESUME:
-            trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
+            trainer = pl.Trainer(gpus=NUM_GPUS,
+                                 weights_summary="top", 
+                                 logger=tb_logger, 
                                  checkpoint_callback=checkpoint_callback, 
                                  distributed_backend='ddp',
                                  log_every_n_steps=LOG_FREQ,
@@ -243,7 +245,9 @@ if __name__ == "__main__":
                                  benchmark=BENCHMARK,
                                  resume_from_checkpoint=CHECKPOINT_PATH)
         else:
-            trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
+            trainer = pl.Trainer(gpus=NUM_GPUS, 
+                                 weights_summary="top", 
+                                 logger=tb_logger, 
                                  checkpoint_callback=checkpoint_callback, 
                                  distributed_backend='ddp',
                                  log_every_n_steps=LOG_FREQ,
@@ -253,16 +257,20 @@ if __name__ == "__main__":
                                  max_steps=MAX_STEPS,)
     else:
         if CHECKPOINT_RESUME:
-            trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
-                                    checkpoint_callback=checkpoint_callback,
-                                    log_every_n_steps=LOG_FREQ,
-                                    val_check_interval=VALCHECK_INTERVAL,
-                                    max_steps=MAX_STEPS,
-                                    deterministic=DETERMINISTIC,
-                                    benchmark=BENCHMARK,
-                                    resume_from_checkpoint=CHECKPOINT_PATH)
+            trainer = pl.Trainer(gpus=NUM_GPUS,
+                                 weights_summary="top",  
+                                 logger=tb_logger, 
+                                 checkpoint_callback=checkpoint_callback,
+                                 log_every_n_steps=LOG_FREQ,
+                                 val_check_interval=VALCHECK_INTERVAL,
+                                 max_steps=MAX_STEPS,
+                                 deterministic=DETERMINISTIC,
+                                 benchmark=BENCHMARK,
+                                 resume_from_checkpoint=CHECKPOINT_PATH)
         else:
-            trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
+            trainer = pl.Trainer(gpus=NUM_GPUS, 
+                                 weights_summary="top", 
+                                 logger=tb_logger, 
                                  checkpoint_callback=checkpoint_callback,
                                  log_every_n_steps=LOG_FREQ,
                                  val_check_interval=VALCHECK_INTERVAL,
