@@ -81,8 +81,8 @@ class AttentionCell(nn.Module):
         self.i2h = nn.Linear(in_features=input_size, out_features=hidden_size, bias=False)
         self.h2h = nn.Linear(in_features=hidden_size, out_features=hidden_size)
         self.score = nn.Linear(in_features=hidden_size, out_features=1, bias=False)
-        # self.rnn = nn.LSTMCell(input_size=input_size + num_embeddings, hidden_size=hidden_size)
-        self.rnn = nn.GRUCell(input_size=input_size + num_embeddings, hidden_size=hidden_size)
+        self.rnn = nn.LSTMCell(input_size=input_size + num_embeddings, hidden_size=hidden_size)
+        # self.rnn = nn.GRUCell(input_size=input_size + num_embeddings, hidden_size=hidden_size)
         
         
     def forward(self, prev_hidden, feature, char_onehots):
