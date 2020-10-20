@@ -23,10 +23,10 @@ class Decoder(nn.Module):
     def __init__(self, input_size: int, num_class: int, hidden_size: int = 256):
         super(Decoder, self).__init__()
         self.sequence = nn.Sequential(
-            BiLSTM(input_size, hidden_size, hidden_size//2),
-            BiLSTM(hidden_size//2, hidden_size//2, hidden_size//2)
+            BiLSTM(input_size, hidden_size, hidden_size),
+            BiLSTM(hidden_size, hidden_size, hidden_size)
         )
-        self.attention = Attention(hidden_size//2, hidden_size//2, num_class, )
+        self.attention = Attention(hidden_size, hidden_size, num_class, )
 
     def forward(self, feature: torch.Tensor, text=None, max_length=25):
         contextual_feature = self.sequence(feature)
