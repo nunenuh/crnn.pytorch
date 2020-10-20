@@ -14,10 +14,12 @@ class Attention(nn.Module):
         self.generator = nn.Linear(in_features=hidden_size, out_features=num_classes)
         
     def _char_to_onehot(self, input_char: torch.Tensor, onehot_dim: int = 38):
+        used_device = input_char.get_device()
+        if used_device == -1: used_device = 'cpu'
         input_char = input_char.unsqueeze(1)
         batch_size = input_char.size(0)
-        one_hot = torch.FloatTensor(batch_size, onehot_dim).zero_()
-        one_hot = one_hot.scatter_(1, input_char, 1)
+        one_hot = torch.FloatTensor(batch_size, onehot_dim).zero_().to(used_device)
+        one_hot = one_hot.scatter_(1, input_char, 1).to(used_device)
         return one_hot
     
     def forward(self, feature, text=None, max_length: int = 25):
