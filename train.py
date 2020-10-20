@@ -109,13 +109,8 @@ if __name__ == "__main__":
     w, h = int(w), int(h)
 
     MANUAL_SEED = args.manual_seed
-    random.seed(MANUAL_SEED)
-    np.random.seed(MANUAL_SEED)
-    torch.manual_seed(MANUAL_SEED)
-    torch.cuda.manual_seed(MANUAL_SEED)
-
-    cudnn.benchmark = True
-    cudnn.deterministic = True
+    BENCHMARK = True
+    DETERMINISTIC = True
     
 
     MAX_EPOCH = args.max_epoch
@@ -231,10 +226,10 @@ if __name__ == "__main__":
     )
     
 
-    
-
-
     tb_logger = pl_loggers.TensorBoardLogger(SAVED_LOGS_PATH)
+    
+    # seed befire train
+    pl.trainer.seed_everything(MANUAL_SEED)
     
     if NUM_GPUS>1:
         if CHECKPOINT_RESUME:
@@ -244,6 +239,8 @@ if __name__ == "__main__":
                                  log_every_n_steps=LOG_FREQ,
                                  val_check_interval=VALCHECK_INTERVAL,
                                  max_steps=MAX_STEPS,
+                                 deterministic=DETERMINISTIC,
+                                 benchmark=BENCHMARK,
                                  resume_from_checkpoint=CHECKPOINT_PATH)
         else:
             trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
@@ -251,6 +248,8 @@ if __name__ == "__main__":
                                  distributed_backend='ddp',
                                  log_every_n_steps=LOG_FREQ,
                                  val_check_interval=VALCHECK_INTERVAL,
+                                 deterministic=DETERMINISTIC,
+                                 benchmark=BENCHMARK,
                                  max_steps=MAX_STEPS,)
     else:
         if CHECKPOINT_RESUME:
@@ -259,13 +258,18 @@ if __name__ == "__main__":
                                     log_every_n_steps=LOG_FREQ,
                                     val_check_interval=VALCHECK_INTERVAL,
                                     max_steps=MAX_STEPS,
+                                    deterministic=DETERMINISTIC,
+                                    benchmark=BENCHMARK,
                                     resume_from_checkpoint=CHECKPOINT_PATH)
         else:
             trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
                                  checkpoint_callback=checkpoint_callback,
                                  log_every_n_steps=LOG_FREQ,
                                  val_check_interval=VALCHECK_INTERVAL,
+                                 deterministic=DETERMINISTIC,
+                                 benchmark=BENCHMARK,
                                  max_steps=MAX_STEPS,)
+
 
     
     trainer.fit(task, trainloader, validloader)
