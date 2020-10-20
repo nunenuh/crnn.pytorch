@@ -4,10 +4,16 @@ sys.path.append(os.getcwd())
 
 from pathlib import Path
 
+
+import numpy as np
+import random
+
 import torch
+
 import torch.nn as nn
 import torch.optim as optim
-import torch
+import torch.backends.cudnn as cudnn
+
 import argparse
 
 import string
@@ -26,6 +32,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='crnn.pytorch trainer cli apps')
     parser.add_argument('--resume', default=None, type=str, help='Choose pth file to resume training')
+
+
+    parser.add_argument('--manual_seed', type=int, default=1111, help='for random seed setting')
 
     parser.add_argument('--max_epoch', required=True, default=None,
                         type=int, help='How many epoch to run training')
@@ -84,7 +93,15 @@ if __name__ == "__main__":
     w, h = args.image_size.split('x')
     w, h = int(w), int(h)
 
+    MANUAL_SEED = args.manual_seed
+    random.seed(MANUAL_SEED)
+    np.random.seed(MANUAL_SEED)
+    torch.manual_seed(MANUAL_SEED)
+    torch.cuda.manual_seed(MANUAL_SEED)
 
+    cudnn.benchmark = True
+    cudnn.deterministic = True
+    
 
     MAX_EPOCH = args.max_epoch
     LRATE = args.lr
