@@ -243,22 +243,29 @@ if __name__ == "__main__":
                                  distributed_backend='ddp',
                                  log_every_n_steps=LOG_FREQ,
                                  val_check_interval=VALCHECK_INTERVAL,
+                                 max_steps=MAX_STEPS,
                                  resume_from_checkpoint=CHECKPOINT_PATH)
         else:
             trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
                                  checkpoint_callback=checkpoint_callback, 
                                  distributed_backend='ddp',
-                                 log_every_n_steps=LOG_FREQ)
+                                 log_every_n_steps=LOG_FREQ,
+                                 val_check_interval=VALCHECK_INTERVAL,
+                                 max_steps=MAX_STEPS,)
     else:
         if CHECKPOINT_RESUME:
             trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
                                     checkpoint_callback=checkpoint_callback,
                                     log_every_n_steps=LOG_FREQ,
+                                    val_check_interval=VALCHECK_INTERVAL,
+                                    max_steps=MAX_STEPS,
                                     resume_from_checkpoint=CHECKPOINT_PATH)
         else:
             trainer = pl.Trainer(gpus=NUM_GPUS, logger=tb_logger, 
                                  checkpoint_callback=checkpoint_callback,
-                                 log_every_n_steps=LOG_FREQ)
+                                 log_every_n_steps=LOG_FREQ,
+                                 val_check_interval=VALCHECK_INTERVAL,
+                                 max_steps=MAX_STEPS,)
 
     
     trainer.fit(task, trainloader, validloader)
