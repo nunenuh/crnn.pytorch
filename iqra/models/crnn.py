@@ -23,15 +23,15 @@ class Decoder(nn.Module):
     def __init__(self, input_size: int, num_class: int, hidden_size: int = 256):
         super(Decoder, self).__init__()
         self.sequence = nn.Sequential(
-            BiLSTM(input_size, hidden_size, hidden_size),
-            BiLSTM(hidden_size, hidden_size, hidden_size)
+            BiLSTM(input_size, hidden_size, hidden_size//2),
+            BiLSTM(hidden_size//2, hidden_size//2, hidden_size//2)
         )
-        self.attention = Attention(hidden_size, hidden_size, num_class, )
+        self.attention = Attention(hidden_size//2, hidden_size//2, num_class, )
 
-    def forward(self, feature: torch.Tensor, text, is_train=True, batch_max_length=25):
+    def forward(self, feature: torch.Tensor, text=None, max_length=25):
         contextual_feature = self.sequence(feature)
         contextual_feature = contextual_feature.contiguous()
-        prediction = self.attention(contextual_feature, text, is_train, batch_max_length=batch_max_length)
+        prediction = self.attention(contextual_feature, text, max_length=max_length)
         return prediction
 
 
@@ -46,9 +46,9 @@ class OCRNet(nn.Module):
         
         self.decoder = Decoder(input_size=self.encoder.out_channels, num_class=num_class, hidden_size=hidden_size)
 
-    def forward(self, x: torch.Tensor, text, is_train=True, batch_max_length=25):
+    def forward(self, x: torch.Tensor, text=None, max_length=25):
         features = self.encoder(x)
-        prediction = self.decoder(features, text, is_train, batch_max_length)
+        prediction = self.decoder(features, text, max_length)
         return prediction
     
     def read(self, x: torch.Tensor, converter, max_length=25):
@@ -60,7 +60,7 @@ class OCRNet(nn.Module):
         
         with torch.no_grad():
             features = self.encoder(x)
-            prediction = self.decoder(features, texts_zeroes, is_train=False, batch_max_length=max_length)
+            prediction = self.decoder(features, texts_zeroes, max_length=max_length)
             _, prediction_index = prediction.max(2)
             prediction_string = converter.decode(prediction_index, texts_length)
         

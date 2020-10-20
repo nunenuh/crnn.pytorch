@@ -21,7 +21,7 @@ class BiLSTM(nn.Module):
         x: visual features [batch x T x input_size]
         return x: contextual feature [batch x T x output_size]
 
-        Args:
+        Args: 
             x ([torch.Tensor]): [visual features [batch x T x input_size]]
 
         Returns:
