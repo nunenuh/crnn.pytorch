@@ -29,11 +29,11 @@ if __name__ == "__main__":
 
     parser.add_argument('--max_epoch', required=True, default=None,
                         type=int, help='How many epoch to run training')
-    parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
+    parser.add_argument('--lr', '--learning-rate', default=1, type=float,
                         help='choose learning rate for optimizer, default value is 0.01')
     parser.add_argument('--beta1',  default=0.9, type=float,
                         help='choose beta1 for optimizer, default value is 0.9')
-    parser.add_argument('--beta2',  default=0.999, type=float,
+    parser.add_argument('--beta2',  default=0.95, type=float,
                         help='choose beta2 for optimizer, default value is 0.999')
     parser.add_argument('--grad_clip', default=5.0, type=float,
                         help='choose gradient clip value for backward prop, default value is 5.0')
