@@ -17,6 +17,7 @@ class Attention(nn.Module):
         input_char = input_char.unsqueeze(1)
         batch_size = input_char.size(0)
         one_hot = torch.FloatTensor(batch_size, onehot_dim).zero_()
+        one_hot = one_hot.scatter_(1, input_char, 1)
         return one_hot
     
     def forward(self, feature, text=None, max_length: int = 25):
