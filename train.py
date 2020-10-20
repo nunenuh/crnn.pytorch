@@ -44,6 +44,10 @@ if __name__ == "__main__":
                         help='choose beta1 for optimizer, default value is 0.9')
     parser.add_argument('--beta2',  default=0.95, type=float,
                         help='choose beta2 for optimizer, default value is 0.999')
+    
+    parser.add_argument('--rho', type=float, default=0.95, help='decay rate rho for Adadelta. default=0.95')
+    parser.add_argument('--eps', type=float, default=1e-8, help='eps for Adadelta. default=1e-8')
+    
     parser.add_argument('--grad_clip', default=5.0, type=float,
                         help='choose gradient clip value for backward prop, default value is 5.0')
 
@@ -111,6 +115,8 @@ if __name__ == "__main__":
     LRATE = args.lr
     BETA1 = args.beta1
     BETA2 = args.beta2
+    RHO = args.rho
+    EPS = args.eps
     GRAD_CLIP = args.grad_clip
     
     BATCH_SIZE = args.batch_size
@@ -195,7 +201,7 @@ if __name__ == "__main__":
     
     
     criterion = nn.CrossEntropyLoss(ignore_index=0)
-    optimizer = optim.Adam(model.parameters(), lr=LRATE, betas=(BETA1, BETA2))
+    optimizer = optim.Adadelta(model.parameters(), lr=LRATE, rho=RHO, eps=EPS)
     task = TaskOCR(model, optimizer, criterion, converter)
     
     # DEFAULTS used by the Trainer
