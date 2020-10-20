@@ -38,8 +38,8 @@ class TaskOCR(pl.LightningModule):
         #texts_encoded = texts_encoded.to(self.device)
         #texts_length = texts_encoded.to(self.device)
         
-        preds = self.model(images, texts_encoded[:, :-1])
-        targets = texts_encoded[:, 1:]
+        preds = self.model(images, texts_encoded[:, :-1]) # align with Attention.forward
+        targets = texts_encoded[:, 1:]  # without [GO] Symbol
         
         loss = self.criterion(preds.view(-1, preds.shape[-1]), targets.contiguous().view(-1))
         acc = self.accuracy(preds, texts)

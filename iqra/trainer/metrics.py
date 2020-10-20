@@ -23,6 +23,18 @@ class TextAccuracy(Metric):
         self.correct += correct
         self.total += batch_size
         
+    def preds_preprocess(self, preds, max_length):
+        batch_size = preds.size(0)
+        length = torch.IntTensor([max_length] * batch_size)
+        
+        _, preds_index = preds.max(2)
+        preds_str = self.converter.decode(preds_index, length)
+        
+        preds_prob = F.softmax(preds, dim=2)
+        preds_max_prob, _ = preds_prob.max(dim=2)
+        
+        return preds_str, preds_max_prob 
+        
     def calculate_correct(self, preds_str, preds_max_prob, labels):
         n_correct = 0
         confidence_scores = []
@@ -40,18 +52,6 @@ class TextAccuracy(Metric):
             
         return n_correct, confidence_scores
         
-    
-    def preds_preprocess(self, preds, max_length):
-        batch_size = preds.size(0)
-        length = torch.IntTensor([max_length] * batch_size)
-        
-        _, preds_index = preds.max(2)
-        preds_str = self.converter.decode(preds_index, length)
-        
-        preds_prob = F.softmax(preds, dim=2)
-        preds_max_prob, _ = preds_prob.max(dim=2)
-        
-        return preds_str, preds_max_prob 
     
     def prune_eos(self, pred, gt):
         # prune after "end of sentence" token ([s])

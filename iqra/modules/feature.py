@@ -18,12 +18,17 @@ class FeatureExtraction(nn.Module):
     def forward(self, x):
         x = self.feature(x)
         
-        # print(f'feature: {x.shape}')
+        print(f'feature (b,c,h,w) : {x.shape}')
         
-        x = x.permute(0, 3, 1, 2)
+        x = x.permute(0, 3, 1, 2) # [b, c, h, w] -> [b, w, c, h]
+        print(f'permute (b,w,c,h) : {x.shape}')
+        
         x = self.avgpool(x)
-        # print(f'avgpool: {x.shape}')
-        x = x.squeeze(3)
+        print(f'avgpool (b,w,c,h) : {x.shape}')
+        
+        x = x.squeeze(3) # [b, w, c]
+        print(f'squeeze (b,w,c) : {x.shape}')
+        
         return x
 
     
@@ -44,7 +49,6 @@ class ResNetFeatureBase(resnet.ResNet):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-        
 
         return x
     
