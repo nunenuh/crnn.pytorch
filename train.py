@@ -228,55 +228,27 @@ if __name__ == "__main__":
 
     tb_logger = pl_loggers.TensorBoardLogger(SAVED_LOGS_PATH)
     
+    DISTRIBUTED_BACKEND = None
+    if NUM_GPUS > 1:
+        DISTRIBUTED_BACKEND = 'ddp'
+     
     # seed befire train
     pl.trainer.seed_everything(MANUAL_SEED)
     
-    if NUM_GPUS>1:
-        if CHECKPOINT_RESUME:
-            trainer = pl.Trainer(gpus=NUM_GPUS,
-                                 weights_summary="top", 
-                                 logger=tb_logger, 
-                                 checkpoint_callback=checkpoint_callback, 
-                                 distributed_backend='ddp',
-                                 log_every_n_steps=LOG_FREQ,
-                                 val_check_interval=VALCHECK_INTERVAL,
-                                 max_steps=MAX_STEPS,
-                                 deterministic=DETERMINISTIC,
-                                 benchmark=BENCHMARK,
-                                 resume_from_checkpoint=CHECKPOINT_PATH)
-        else:
-            trainer = pl.Trainer(gpus=NUM_GPUS, 
-                                 weights_summary="top", 
-                                 logger=tb_logger, 
-                                 checkpoint_callback=checkpoint_callback, 
-                                 distributed_backend='ddp',
-                                 log_every_n_steps=LOG_FREQ,
-                                 val_check_interval=VALCHECK_INTERVAL,
-                                 deterministic=DETERMINISTIC,
-                                 benchmark=BENCHMARK,
-                                 max_steps=MAX_STEPS,)
-    else:
-        if CHECKPOINT_RESUME:
-            trainer = pl.Trainer(gpus=NUM_GPUS,
-                                 weights_summary="top",  
-                                 logger=tb_logger, 
-                                 checkpoint_callback=checkpoint_callback,
-                                 log_every_n_steps=LOG_FREQ,
-                                 val_check_interval=VALCHECK_INTERVAL,
-                                 max_steps=MAX_STEPS,
-                                 deterministic=DETERMINISTIC,
-                                 benchmark=BENCHMARK,
-                                 resume_from_checkpoint=CHECKPOINT_PATH)
-        else:
-            trainer = pl.Trainer(gpus=NUM_GPUS, 
-                                 weights_summary="top", 
-                                 logger=tb_logger, 
-                                 checkpoint_callback=checkpoint_callback,
-                                 log_every_n_steps=LOG_FREQ,
-                                 val_check_interval=VALCHECK_INTERVAL,
-                                 deterministic=DETERMINISTIC,
-                                 benchmark=BENCHMARK,
-                                 max_steps=MAX_STEPS,)
+    trainer = pl.Trainer(
+        weights_summary="top",
+        max_epochs=MAX_EPOCH,
+        max_steps=MAX_STEPS,
+        val_check_interval=VALCHECK_INTERVAL,
+        gpus=NUM_GPUS,
+        distributed_backend=DISTRIBUTED_BACKEND,
+        log_every_n_steps=LOG_FREQ,
+        deterministic=DETERMINISTIC,
+        benchmark=BENCHMARK,
+        logger=tb_logger, 
+        checkpoint_callback=checkpoint_callback, 
+        resume_from_checkpoint=CHECKPOINT_PATH
+    )
 
 
     
