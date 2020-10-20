@@ -78,6 +78,10 @@ if __name__ == "__main__":
                         help='the number of output channel of Feature extractor')
     parser.add_argument('--hidden_size', type=int, default=256, help='the size of the LSTM hidden state')
 
+    parser.add_argument('--resnet_version', type=int, default=18, help='choose pretrained resnet version')
+
+    
+
     parser.add_argument('--num_gpus', default=1, type=int,
                         help='fill with zero to use cpu or fill with number 2 to use multigpu')
     parser.add_argument('--log_freq', default=10, type=int,
@@ -130,6 +134,7 @@ if __name__ == "__main__":
     IN_CHANNEL = args.in_channel
     OUT_CHANNEL = args.out_channel
     HIDDEN_SIZE = args.hidden_size
+    RESNET_VERSION = args.resnet_version
     
     
     NUM_GPUS = args.num_gpus
@@ -181,12 +186,12 @@ if __name__ == "__main__":
     # Model Preparation
     if WEIGHT_RESUME:
         model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE,
-			resnet_version=34, pretrained_feature=True, freeze_feature=True)
+			resnet_version=RESNET_VERSION, pretrained_feature=True, freeze_feature=True)
         weights = torch.load(WEIGHT_PATH, map_location=torch.device('cpu'))
         model.load_state_dict(weights)
     else:
         model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE,
-			resnet_version=34, pretrained_feature=True, freeze_feature=True)
+			resnet_version=RESNET_VERSION, pretrained_feature=True, freeze_feature=True)
     
     
     criterion = nn.CrossEntropyLoss(ignore_index=0)
