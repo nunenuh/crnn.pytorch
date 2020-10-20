@@ -18,16 +18,16 @@ class FeatureExtraction(nn.Module):
     def forward(self, x):
         x = self.feature(x)
         
-        print(f'feature (b,c,h,w) : {x.shape}')
+        # print(f'feature (b,c,h,w) : {x.shape}')
         
         x = x.permute(0, 3, 1, 2) # [b, c, h, w] -> [b, w, c, h]
-        print(f'permute (b,w,c,h) : {x.shape}')
+        # print(f'permute (b,w,c,h) : {x.shape}')
         
         x = self.avgpool(x)
-        print(f'avgpool (b,w,c,h) : {x.shape}')
+        # print(f'avgpool (b,w,c,h) : {x.shape}')
         
         x = x.squeeze(3) # [b, w, c]
-        print(f'squeeze (b,w,c) : {x.shape}')
+        # print(f'squeeze (b,w,c) : {x.shape}')
         
         return x
 
