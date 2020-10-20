@@ -2,8 +2,8 @@ import sys
 import torch
 import torch.nn as nn
 from torchvision.models import resnet
-from ..modules import Attention, FeatureExtraction, SpatialTransformer, BiLSTM
-
+from ..modules import Attention, FeatureExtraction, BiLSTM
+from ..modules.transformation_ori import SpatialTransformer
 
 class Encoder(nn.Module):
     def __init__(self, in_feat: int = 1, nf: int = 20, im_size: tuple = (32, 100), 
