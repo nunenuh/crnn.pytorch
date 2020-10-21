@@ -205,12 +205,18 @@ if __name__ == "__main__":
         model.load_state_dict(weights)
         
         transformer_weight = torch.load('weights/spatial_transformer.pth', map_location=torch.device('cpu'))
+        feature_weight = torch.load('weights/feature_extractor.pth', map_location=torch.device('cpu'))
+        
         model.encoder.transformer.load_state_dict(transformer_weight)
+        model.encoder.feature.load_state_dict(feature_weight)
     else:
         model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
-
         transformer_weight = torch.load('weights/spatial_transformer.pth', map_location=torch.device('cpu'))
+        feature_weight = torch.load('weights/feature_extractor.pth', map_location=torch.device('cpu'))
         model.encoder.transformer.load_state_dict(transformer_weight)
+        model.encoder.feature.load_state_dict(feature_weight)
+
+
     
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = optim.Adadelta(model.parameters(), lr=LRATE, rho=RHO, eps=EPS)
