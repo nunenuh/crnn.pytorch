@@ -11,7 +11,8 @@ from iqra.modules.feature import *
 
 if __name__ == '__main__':
     image_data = torch.rand(3,1,224,224)
-    text_data = torch.rand(3,512)
+    text_data = torch.rand(3,512).long()
+    # text_data = torch.LongTensor(text_data)
     
     # fe = FeatureExtraction(in_channels=1, version=50)
     # hype = fe.feature.last_channels

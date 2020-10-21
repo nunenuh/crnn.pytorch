@@ -2,16 +2,15 @@ import sys
 import torch
 import torch.nn as nn
 from torchvision.models import resnet
-from ..modules import Attention, FeatureExtraction, BiLSTM
+from ..modules import Attention, FeatureExtractor, BiLSTM
 from ..modules.transformation import SpatialTransformer
 
 class Encoder(nn.Module):
-    def __init__(self, in_feat: int = 1, nf: int = 20, im_size: tuple = (32, 100), 
-                 resnet_version=18, pretrained=True, freeze_feature=True):
+    def __init__(self, in_feat: int = 1, out_feat=512, nf: int = 20, im_size: tuple = (32, 100)):
         super(Encoder, self).__init__()
         self.transformer = SpatialTransformer(nf=nf, img_size=im_size, imrec_size=im_size, img_channel=in_feat)
-        self.feature = FeatureExtraction(in_channels=in_feat, version=resnet_version, pretrained=pretrained, freeze_base=freeze_feature)
-        self.out_channels = self.feature.out_channels
+        self.feature = FeatureExtractor(in_channels=in_feat, out_channels=out_feat)
+        self.out_channels = out_feat
         
     def forward(self, x):
         x = self.transformer(x)
@@ -36,15 +35,11 @@ class Decoder(nn.Module):
 
 
 class OCRNet(nn.Module):
-    def __init__(self, num_class, in_feat: int = 1,
-                 hidden_size: int = 256, nfid: int = 20, im_size: tuple = (32, 100),
-                 resnet_version = 18, pretrained_feature=True, freeze_feature=True):
+    def __init__(self, num_class, in_feat: int = 1, out_feat=512, hidden_size: int = 256, 
+                 nfid: int = 20, im_size: tuple = (32, 100)):
         super(OCRNet, self).__init__()
-        self.encoder = Encoder(in_feat=in_feat, nf=nfid, im_size=im_size, 
-                               resnet_version=resnet_version, pretrained=pretrained_feature, 
-                               freeze_feature=freeze_feature)
-        
-        self.decoder = Decoder(input_size=self.encoder.out_channels, num_class=num_class, hidden_size=hidden_size)
+        self.encoder = Encoder(in_feat=in_feat, out_feat=out_feat, nf=nfid, im_size=im_size)
+        self.decoder = Decoder(input_size=out_feat, num_class=num_class, hidden_size=hidden_size)
 
     def forward(self, x: torch.Tensor, text=None, max_length=25):
         features = self.encoder(x)
