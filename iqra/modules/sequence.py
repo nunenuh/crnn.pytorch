@@ -11,7 +11,7 @@ class BiLSTM(nn.Module):
         # self.output_size = output_size
         # self.batch_first = batch_first
         
-        self.rnn: nn.LSTM = nn.LSTM(input_size, hidden_size, output_size, bidirectional=True, batch_first=batch_first)
+        self.rnn: nn.LSTM = nn.LSTM(input_size, hidden_size, bidirectional=True, batch_first=batch_first)
         self.linear: nn.Linear = nn.Linear(hidden_size * 2, output_size)
         
         
