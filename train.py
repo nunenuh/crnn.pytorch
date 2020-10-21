@@ -86,8 +86,6 @@ if __name__ == "__main__":
                         help='the number of output channel of Feature extractor')
     parser.add_argument('--hidden_size', type=int, default=256, help='the size of the LSTM hidden state')
 
-    parser.add_argument('--resnet_version', type=int, default=18, help='choose pretrained resnet version')
-
     
 
     parser.add_argument('--num_gpus', default=1, type=int,
@@ -151,7 +149,6 @@ if __name__ == "__main__":
     IN_CHANNEL = args.in_channel
     OUT_CHANNEL = args.out_channel
     HIDDEN_SIZE = args.hidden_size
-    RESNET_VERSION = args.resnet_version
     
     
     NUM_GPUS = args.num_gpus
@@ -203,16 +200,14 @@ if __name__ == "__main__":
     
     # Model Preparation
     if WEIGHT_RESUME:
-        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE,
-			resnet_version=RESNET_VERSION, pretrained_feature=True, freeze_feature=True)
+        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
         weights = torch.load(WEIGHT_PATH, map_location=torch.device('cpu'))
         model.load_state_dict(weights)
         
         transformer_weight = torch.load('weights/spatial_transformer.pth', map_location=torch.device('cpu'))
         model.encoder.transformer.load_state_dict(transformer_weight)
     else:
-        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE,
-			resnet_version=RESNET_VERSION, pretrained_feature=True, freeze_feature=True)
+        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
 
         transformer_weight = torch.load('weights/spatial_transformer.pth', map_location=torch.device('cpu'))
         model.encoder.transformer.load_state_dict(transformer_weight)
@@ -224,7 +219,7 @@ if __name__ == "__main__":
     # DEFAULTS used by the Trainer
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         filepath=SAVED_CHECKPOINT_PATH,
-        save_top_k=1,
+        save_top_k=3,
         verbose=True,
         monitor='val_loss',
         mode='min',
