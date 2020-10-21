@@ -33,6 +33,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='crnn.pytorch trainer cli apps')
     parser.add_argument('--resume', default=None, type=str, help='Choose pth file to resume training')
 
+    
+    parser.add_argument('--summary', default="top", type=str, 
+                        help='there are three value that are accepter, "full", "top" and None')
+    
 
     parser.add_argument('--manual_seed', type=int, default=1111, help='for random seed setting')
 
@@ -109,6 +113,8 @@ if __name__ == "__main__":
     w, h = int(w), int(h)
 
     MANUAL_SEED = args.manual_seed
+    SUMMARY = args.summary
+    
     BENCHMARK = True
     DETERMINISTIC = True
     
@@ -232,11 +238,16 @@ if __name__ == "__main__":
     if NUM_GPUS > 1:
         DISTRIBUTED_BACKEND = 'ddp'
      
+
+    # break before train
+    # MAX_STEPS = None
+    # VALCHECK_INTERVAL = 1.0
+    
     # seed befire train
     pl.trainer.seed_everything(MANUAL_SEED)
     
     trainer = pl.Trainer(
-        weights_summary="top",
+        weights_summary=SUMMARY,
         max_epochs=MAX_EPOCH,
         max_steps=MAX_STEPS,
         val_check_interval=VALCHECK_INTERVAL,
