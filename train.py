@@ -94,7 +94,7 @@ if __name__ == "__main__":
                         help='show log every value, default value is 10')
     
     
-    parser.add_argument('--max_steps', default=30000, type=int,
+    parser.add_argument('--max_steps', default=300000, type=int,
                         help='max iteration step, default value is 30000')
     
     parser.add_argument('--valcheck_interval', default=2000, type=int,
