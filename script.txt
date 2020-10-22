@@ -1,0 +1,7 @@
+python train.py --max_epoch 10 \
+--trainset_path /data/clova_deep_text/training \
+--validset_path /data/clova_deep_text/validation \
+--num_gpus 1 --batch_size 256 --num_workers 32 \
+--hidden_size 256 --usage_ratio=0.1,0.1 --lr 1 \
+--manual_seed 1111 --max_steps 30000 --valcheck_interval 100
+
