@@ -5,6 +5,8 @@ from torchvision.models import resnet
 from ..modules import Attention, FeatureExtractor, BiLSTM
 from ..modules.spatial import SpatialTransformer
 
+from ..ops import net
+
 class Encoder(nn.Module):
     def __init__(self, in_feat: int = 1, out_feat=512, nf: int = 20, im_size: tuple = (32, 100)):
         super(Encoder, self).__init__()
@@ -46,17 +48,20 @@ class OCRNet(nn.Module):
         prediction = self.decoder(features, text, max_length)
         return prediction
     
+    def freeze_spatial(self):
+        net.freeze(self.encoder.spatial_transformer)
+        
+    def freeze_feature(self):
+        net.freeze(self.encoder.feature_extractor)
+    
     def freeze_encoder(self):
-        for param in self.encoder.parameters():
-            param.requires_grad = False
+        net.freeze(self.encoder)
             
     def freeze_sequence(self):
-        for param in self.decoder.sequence.parameters():
-            param.requires_grad = False
+        net.freeze(self.decoder.sequence)
             
     def freeze_prediction(self):
-        for param in self.decoder.prediction.parameters():
-            param.requires_grad = False
+        net.freeze(self.decoder.prediction)
     
     def read(self, x: torch.Tensor, converter, max_length=25):
         batch_size = x.size(0)
