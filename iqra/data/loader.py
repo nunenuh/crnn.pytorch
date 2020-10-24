@@ -27,7 +27,8 @@ def train_loader(path, batch_size=32, shuffle=True, num_workers=8,
     dloader = DataLoader(dset,
                          batch_size=batch_size,
                          shuffle=shuffle,
-                         num_workers=num_workers)
+                         num_workers=num_workers,
+                         pin_memory=True)
 
     return dloader, dset
 
@@ -51,5 +52,6 @@ def valid_loader(path, batch_size=32, shuffle=True, num_workers=8,
     dloader = DataLoader(dset,
                          batch_size=batch_size,
                          shuffle=shuffle,
-                         num_workers=num_workers)
+                         num_workers=num_workers,
+                         pin_memory=True)
     return dloader, dset

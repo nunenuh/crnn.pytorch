@@ -3,8 +3,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# device = 'cpu'
-
 
 """
 Word Definition:
@@ -20,8 +18,6 @@ Formula:
     T = Transformation point
     I' = Rectified Image 
 """
-    
-
 
 class LocalizationNetwork(nn.Module):
     def __init__(self, nf, img_channel):
@@ -227,7 +223,6 @@ class GridGenerator(nn.Module):
         return p_prime
     
     
-
 class SpatialTransformer(nn.Module):
     """ Rectification Network of RARE, namely TPS based STN """
     

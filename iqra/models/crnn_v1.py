@@ -25,12 +25,12 @@ class Decoder(nn.Module):
             BiLSTM(input_size, hidden_size, hidden_size),
             BiLSTM(hidden_size, hidden_size, hidden_size)
         )
-        self.attention = Attention(hidden_size, hidden_size, num_class, )
+        self.prediction = Attention(hidden_size, hidden_size, num_class, )
 
     def forward(self, feature: torch.Tensor, text=None, max_length=25):
         contextual_feature = self.sequence(feature)
         contextual_feature = contextual_feature.contiguous()
-        prediction = self.attention(contextual_feature, text, max_length=max_length)
+        prediction = self.prediction(contextual_feature, text, max_length=max_length)
         return prediction
 
 
@@ -45,6 +45,18 @@ class OCRNet(nn.Module):
         features = self.encoder(x)
         prediction = self.decoder(features, text, max_length)
         return prediction
+    
+    def freeze_encoder(self):
+        for param in self.encoder.parameters():
+            param.requires_grad = False
+            
+    def freeze_sequence(self):
+        for param in self.decoder.sequence.parameters():
+            param.requires_grad = False
+            
+    def freeze_prediction(self):
+        for param in self.decoder.prediction.parameters():
+            param.requires_grad = False
     
     def read(self, x: torch.Tensor, converter, max_length=25):
         batch_size = x.size(0)

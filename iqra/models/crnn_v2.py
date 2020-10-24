@@ -3,19 +3,19 @@ import torch
 import torch.nn as nn
 from torchvision.models import resnet
 from ..modules import Attention, FeatureExtractor, BiLSTM
-from ..modules.transformation import SpatialTransformer
+from ..modules.spatial import SpatialTransformer
 from ..modules.transformer import Transformer
 
 class Encoder(nn.Module):
     def __init__(self, in_feat: int = 1, out_feat=512, nf: int = 20, im_size: tuple = (32, 100)):
         super(Encoder, self).__init__()
-        self.transformer = SpatialTransformer(nf=nf, img_size=im_size, imrec_size=im_size, img_channel=in_feat)
-        self.feature = FeatureExtractor(in_channels=in_feat, out_channels=out_feat)
+        self.spatial_transformer = SpatialTransformer(nf=nf, img_size=im_size, imrec_size=im_size, img_channel=in_feat)
+        self.feature_extractor = FeatureExtractor(in_channels=in_feat, out_channels=out_feat)
         self.out_channels = out_feat
         
     def forward(self, x):
-        x = self.transformer(x)
-        x = self.feature(x)
+        x = self.spatial_transformer(x)
+        x = self.feature_extractor(x)
         return x
 
 
@@ -46,7 +46,18 @@ class TransformerOCRNet(nn.Module):
         features = self.encoder(x)
         prediction = self.decoder(features)
         return prediction
+    
+    def freeze_encoder(self):
+        for param in self.encoder.parameters():
+            param.requires_grad = False
             
+    def freeze_sequence(self):
+        for param in self.decoder.sequence.parameters():
+            param.requires_grad = False
+            
+    def freeze_prediction(self):
+        for param in self.decoder.prediction.parameters():
+            param.requires_grad = False
 
 
 if __name__ == "__main__":
