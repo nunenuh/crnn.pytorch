@@ -38,7 +38,7 @@ class LMDBDataset(Dataset):
         self._build_lmdb_env()
         
     def _init_default_attrs(self, **kwargs):
-        self.data_filtering_off: bool = kwargs.get('data_filtering_off', True)
+        self.data_filtering_off: bool = kwargs.get('data_filtering_off', False)
         self.batch_max_length: int = kwargs.get('batch_max_length', 25)
         self.is_rgb: bool = kwargs.get('is_rgb', False)
         self.character = kwargs.get('character', '0123456789abcdefghijklmnopqrstuvwxyz')
