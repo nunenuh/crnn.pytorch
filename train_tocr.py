@@ -19,8 +19,8 @@ import argparse
 import string
 from iqra.utils import AttnLabelConverter
 from iqra.data import loader
-from iqra.models import OCRNet
-from iqra.trainer.task import TaskOCR
+from iqra.models.crnn_v2 import TransformerOCRNet
+from iqra.trainer.task import TaskTransformerOCR
 
 import pytorch_lightning as pl
 from pytorch_lightning import loggers as pl_loggers
@@ -94,7 +94,7 @@ if __name__ == "__main__":
                         help='show log every value, default value is 10')
     
     
-    parser.add_argument('--max_steps', default=30000, type=int,
+    parser.add_argument('--max_steps', default=None, type=int,
                         help='max iteration step, default value is 30000')
     
     parser.add_argument('--valcheck_interval', default=2000, type=int,
@@ -194,39 +194,47 @@ if __name__ == "__main__":
 				                      is_sensitive=SENSITIVE, character=CHARACTER)
     
     validloader, validset = loader.valid_loader(VALIDSET_PATH, batch_size=BATCH_SIZE,
-                                      shuffle=True, num_workers=NUM_WORKERS,
+                                      shuffle=False, num_workers=NUM_WORKERS,
                                       img_size=IMG_SIZE, is_sensitive=SENSITIVE,
                                       character=CHARACTER)    
     
     # Model Preparation
     if WEIGHT_RESUME:
-        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
+        model = TransformerOCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
         weights = torch.load(WEIGHT_PATH, map_location=torch.device('cpu'))
         model.load_state_dict(weights)
         
-        ocrnet_state_dict = torch.load('weights/ocrnet_pretrained.pth', map_location=torch.device('cpu'))
-        model.load_state_dict(ocrnet_state_dict)
-        model.freeze_encoder()
+        # ocrnet_state_dict = torch.load('weights/transformer_ocrnet_pretrained.pth', map_location=torch.device('cpu'))
+        # model.load_state_dict(ocrnet_state_dict)
+        # model.freeze_encoder()
     else:
-        model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
+        model = TransformerOCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
         
-        ocrnet_state_dict = torch.load('weights/ocrnet_pretrained.pth', map_location=torch.device('cpu'))
-        model.load_state_dict(ocrnet_state_dict)
-        model.freeze_encoder()
+        spatial_sdict = torch.load('weights/spatial_transformer.pth', map_location=torch.device('cpu'))
+        feature_sdict = torch.load('weights/feature_extractor.pth', map_location=torch.device('cpu'))
+        sequence_sdict = torch.load('weights/sequence_bilstm.pth', map_location=torch.device('cpu'))
+        
+        model.encoder.spatial_transformer.load_state_dict(spatial_sdict)
+        model.encoder.feature_extractor.load_state_dict(feature_sdict)
+        model.decoder.sequence.load_state_dict(sequence_sdict)        
+        # model.load_state_dict(ocrnet_state_dict)
+        model.freeze_spatial()
+        model.freeze_feature()
+#         model.freeze_sequence()
 
     
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = optim.Adadelta(model.parameters(), lr=LRATE, rho=RHO, eps=EPS)
-    task = TaskOCR(model, optimizer, criterion, converter)
+    task = TaskTransformerOCR(model, optimizer, criterion, converter)
     
     # DEFAULTS used by the Trainer
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         filepath=SAVED_CHECKPOINT_PATH,
-        save_top_k=3,
+        save_top_k=1,
         verbose=True,
         monitor='val_loss',
         mode='min',
-        prefix='ocrnet'
+        prefix='transformer-ocrnet'
     )
     
 

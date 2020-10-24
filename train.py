@@ -206,13 +206,13 @@ if __name__ == "__main__":
         
         ocrnet_state_dict = torch.load('weights/ocrnet_pretrained.pth', map_location=torch.device('cpu'))
         model.load_state_dict(ocrnet_state_dict)
-        model.freeze_encoder()
+        # model.freeze_encoder()
     else:
         model = OCRNet(num_class=NUM_CLASS, in_feat=IN_CHANNEL, hidden_size=HIDDEN_SIZE, im_size=IMG_SIZE)
         
         ocrnet_state_dict = torch.load('weights/ocrnet_pretrained.pth', map_location=torch.device('cpu'))
         model.load_state_dict(ocrnet_state_dict)
-        model.freeze_encoder()
+        # model.freeze_encoder()
 
     
     criterion = nn.CrossEntropyLoss(ignore_index=0)
