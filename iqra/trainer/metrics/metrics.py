@@ -17,7 +17,7 @@ class Accuracy(Metric):
     def update(self, preds: torch.Tensor, labels, max_length=25):
         batch_size = preds.size(0)
         preds_str = MF.prediction_string(preds, self.converter, max_length=max_length)
-        correct = MF.count_correct(preds_str, labels)
+        correct = MF.count_text_correct(preds_str, labels)
         
         self.correct += correct
         self.total += batch_size
