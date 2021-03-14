@@ -175,9 +175,10 @@ class BalanceDatasetConcatenator(object):
                 if key in str(dirpath):
                     select_flag = True
                     break
+            
             if select_flag:
                 self.base_datamap[key]['dirpath'].append(str(dirpath))
-                
+          
 
     def _build_balanced_dataset(self):
         concat_list = []
@@ -187,7 +188,6 @@ class BalanceDatasetConcatenator(object):
             ratio = self.base_datamap[key]['ratio']
             for subdir_path in self.base_datamap[key]['dirpath']:
                 dataset = self.DatasetClass(root=str(subdir_path), **self.dataset_params)
-                
                 dataset_tlen = len(dataset)
                 dataset_trn_len = int(dataset_tlen * ratio)
                 dataset_val_len = dataset_tlen - dataset_trn_len
@@ -195,10 +195,8 @@ class BalanceDatasetConcatenator(object):
                 
                 trainset, validset = random_split(dataset, lengths=indices)
                 dataset_list.append(trainset)
-                
-                tlength += dataset_trn_len
+                tlength += dataset_trn_len 
             
-            # print(dataset_list)
             concatset = ConcatDataset(dataset_list)
             concat_list.append(concatset)
             self.base_datamap[key]['total_length'] = tlength
@@ -206,6 +204,9 @@ class BalanceDatasetConcatenator(object):
             self.total_length += tlength
             
         self.balanced_dataset = ConcatDataset(concat_list)
+        
+        
+        
     
     def get_dataset(self):
         self._build_balanced_dataset()

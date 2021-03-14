@@ -16,10 +16,13 @@ def text_accuracy(preds, labels, converter, max_length=25):
 
 def count_text_correct(preds_str, labels):
     n_correct = 0
-    for gt, pred in zip(labels, preds_str):
+    for pred, gt in zip(preds_str, labels):
+#         print(f'log before: pred:{pred} == gt:{gt}')
+        
         pred, pred_eos = clean_text(pred, eos_str='[s]')
         gt, gt_eos = clean_text(gt, eos_str='[s]')
-
+#         print(f'log after: pred:{pred} == gt:{gt}')
+        
         if pred == gt:
             n_correct += 1
 
@@ -36,8 +39,9 @@ def text_norm_distance(preds, labels, converter, max_length=25):
 
 def count_norm_distance(preds_str, labels):
     norm_ed = 0
-    for gt, pred in zip(labels, preds_str):
+    for pred, gt in zip(preds_str, labels):
         pred, pred_eos = clean_text(pred, eos_str='[s]')
+        
         gt, gt_eos = clean_text(gt, eos_str='[s]')
 
         ned = normalized_distance(pred, gt)

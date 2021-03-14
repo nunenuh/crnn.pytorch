@@ -37,10 +37,12 @@ class TaskOCR(pl.LightningModule):
         
         preds = self.model(images, labels_encoded[:, :-1]) # align with Attention.forward
         targets = labels_encoded[:, 1:]  # without [GO] Symbol
-        
+                
         loss = self.criterion(preds.view(-1, preds.shape[-1]), targets.contiguous().view(-1))
-        acc = self.accuracy(preds, labels)
-        distance = self.distance_accuracy(preds, labels)
+        
+        targets_decoded = self.converter.decode(targets, labels_length)
+        acc = self.accuracy(preds, targets_decoded)
+        distance = self.distance_accuracy(preds, targets_decoded)
         
         return loss, acc, distance
         
@@ -69,7 +71,24 @@ class TaskOCR(pl.LightningModule):
     def validation_epoch_end(self, outs):
         self.log('val_acc_epoch', self.accuracy.compute(), logger=True)
         self.log('val_distance_epoch', self.distance_accuracy.compute(), logger=True)
+        
+        
+    def test_step(self, batch, batch_idx):
+        loss, acc, distance = self.shared_step(batch, batch_idx)
+        self.log('test_loss', loss, prog_bar=True, logger=True)
+        self.log('test_acc', acc,  prog_bar=True, logger=True)
+        self.log('test_distance', distance,  prog_bar=True, logger=True)
+        
+        return {'test_loss': loss, 'test_acc':acc, 'test_distance': distance}
     
+    def test_epoch_end(self, outputs):
+        # OPTIONAL
+        avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
+        
+        self.log('avg_test_loss', avg_loss, logger=True)
+        self.log('avg_test_acc', self.accuracy.compute(), logger=True)
+        self.log('avg_test_distance', self.distance_accuracy.compute(), logger=True)
+        
     def configure_optimizers(self):
         return self.optimizer
 
@@ -104,8 +123,10 @@ class TaskTransformerOCR(pl.LightningModule):
         targets = labels_encoded[:, 1:]  # without [GO] Symbol
         
         loss = self.criterion(preds.view(-1, preds.shape[-1]), targets.contiguous().view(-1))
-        acc = self.accuracy(preds, labels)
-        distance = self.distance_accuracy(preds, labels)
+        
+        targets_decoded = self.converter.decode(targets, labels_length)
+        acc = self.accuracy(preds, targets_decoded)
+        distance = self.distance_accuracy(preds, targets_decoded)
         
         return loss, acc, distance
         
@@ -132,6 +153,23 @@ class TaskTransformerOCR(pl.LightningModule):
     def validation_epoch_end(self, outs):
         self.log('val_acc_epoch', self.accuracy.compute(), logger=True)
         self.log('val_distance_epoch', self.distance_accuracy.compute(), logger=True)
+        
+        
+    def test_step(self, batch, batch_idx):
+        loss, acc, distance = self.shared_step(batch, batch_idx)
+        self.log('test_loss', loss, prog_bar=True, logger=True)
+        self.log('test_acc', acc,  prog_bar=True, logger=True)
+        self.log('test_distance', distance,  prog_bar=True, logger=True)
+        
+        return {'test_loss': loss, 'test_acc':acc, 'test_distance': distance}
+    
+    def test_epoch_end(self, outputs):
+        # OPTIONAL
+        avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
+        
+        self.log('avg_test_loss', avg_loss, logger=True)
+        self.log('avg_test_acc', self.accuracy.compute(), logger=True)
+        self.log('avg_test_distance', self.distance_accuracy.compute(), logger=True)
     
     def configure_optimizers(self):
         return self.optimizer
